@@ -1,0 +1,68 @@
+.history-wrapper {
+	padding: 1.5em;
+	border-radius: 5px;
+	width: 100%;
+	position: relative;
+	max-height: 72vh;
+
+	.song {
+		@include display(flex);
+		@include align-items(center);
+		@include justify-content(space-between);
+		margin-bottom: 15px;
+		.art {
+			margin-right: 15px;
+			width: 100px;
+		}
+
+		.fa-times {
+			background: rgba(20,20,20,1.0);
+			padding: 10px;
+			border-radius: 10px;
+			margin-left: 20px;
+		}
+
+		.info-wrap {
+			width: 100%;
+		}
+	}
+	
+	.history {
+		width: 100%;
+		max-height: 65vh;
+		overflow: auto;
+	}
+	.fadeout {
+	    position: absolute;
+	    bottom: 0;
+	    left: 0;
+	    height: 10em;
+	    width: 100%;
+	    background: -webkit-linear-gradient(
+	        rgba(0, 0, 0, 0) 0%,
+	        rgba(0, 0, 0, 1) 100%
+	    ); 
+	    background-image: -moz-linear-gradient(
+	        rgba(0, 0, 0, 0) 0%,
+	        rgba(0, 0, 0, 1) 100%
+	    );
+	    background-image: -o-linear-gradient(
+	        rgba(0, 0, 0, 0) 0%,
+	        rgba(0, 0, 0, 1) 100%
+	    );
+	    background-image: linear-gradient(
+	        rgba(0, 0, 0, 0) 0%,
+	        rgba(0, 0, 0, 1) 100%
+	    );
+	    background-image: -ms-linear-gradient(
+	        rgba(0, 0, 0, 0) 0%,
+	        rgba(0, 0, 0, 1) 100%
+	    );
+	} 
+
+	.hidden {
+		visibility: hidden;
+		opacity: 0;
+	  	transition: visibility 0s 2s, opacity 2s linear;
+	}
+}

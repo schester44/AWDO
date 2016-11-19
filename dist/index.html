@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html ng-app="tewns">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>awdo</title>
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700" rel="stylesheet">
+	<link rel="stylesheet" href="assets/css/styles.min.css">
+	<link rel="stylesheet" href="assets/css/fa/css/font-awesome.min.css">
+</head>
+<body ng-controller="PlayerCtrl as player">
+<div class="overlay" ng-class="{hidden: !showOverlay}" ng-click="toggleOverlay()">
+	<img ng-src="{{playing.images.large}}" onerror="this.style.display='none'">
+	{{ playing.song_artist }} - {{playing.song_title}}	
+</div>
+<div class="app">
+	<div class="header"><h1>awdo</h1></div>
+	<div class="container">
+		<input type="text" class="search" placeholder="Search..">
+		<scroll class="history-wrapper">
+			<div class="history">
+				<div ng-hide="songHistory.length" style="width:100%;margin-top:25px;text-align:center">
+					Press play to start your journey.
+				</div>
+				<div class="song" ng-repeat="(key, song) in songHistory">
+					<div class="art" ng-click="playFromHistory(song)">
+						<img ng-src="{{song.images.small}}" onerror="this.style.display='none'">
+					</div>
+					<div class="info-wrap">
+						<div class="info" ng-click="playFromHistory(song)">
+						{{ song.song_artist}} - {{ song.song_title }}
+						</div>
+					</div>
+					<i class="fa fa-times" ng-click="removeFromHistory(song)"></i>
+				</div>
+			</div>
+			<div class="fadeout" ng-show="songHistory.length >= 6"></div>
+		</scroll>
+	</div>
+
+	<div class="player">
+			<sound-manager></sound-manager>
+			<i class="fa" ng-class="isPlaying ? 'fa-pause' : 'fa-play'" ng-click="togglePlay()"></i>
+			<i class="fa fa-forward" ng-click="nextSong()"></i>
+			<i class="fa fa-info" ng-click="toggleOverlay()" ng-class="{hidden: songHistory.length <= 0}" ></i>
+	</div>
+</div>
+
+<script src="../node_modules/angular/angular.min.js"></script>	
+<script src="../node_modules/angular-local-storage/dist/angular-local-storage.min.js"></script>	
+<script src="../node_modules/underscore/underscore.js"></script>	
+<script src="../src/js/lib/sm2.js"></script>	
+<script src="../src/js/main.js"></script>	
+<script src="../src/js/services.js"></script>	
+</body>
+</html>
