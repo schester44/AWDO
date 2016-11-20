@@ -1,3 +1,5 @@
+/// ADD FUNCTION TO FLAG SONGS IF THEY'RE NOT WORKING / DEAD -- SOUNDCLOUD
+
 (function(){
 	var underscore = angular.module('underscore', []);
 	underscore.factory('_', ['$window', function($window) {
@@ -58,14 +60,6 @@
 			});
 		}
 
-		$scope.addRemoveSong = function(song, index) {
-			if (song.fromHistory) {
-				removeFromHistory(song, index);
-			} else {
-				addToHistory(song, index);
-			}
-		}
-
 		addToHistory = function(song, index)  {
 			var history = JSON.parse(localStorageService.get('history'));
 			history.push(song);
@@ -85,6 +79,14 @@
 			$scope.songHistory.splice(index, 1);
 		}
 
+		$scope.addRemoveSong = function(song, index) {
+			if (song.fromHistory) {
+				removeFromHistory(song, index);
+			} else {
+				addToHistory(song, index);
+			}
+		}
+		
 		$scope.playFromHistory = function(song) {
 			if (audio.nowPlaying){
 	        	audio.nowPlaying.destruct();

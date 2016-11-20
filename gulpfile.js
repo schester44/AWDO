@@ -8,6 +8,7 @@ gulp.task('js:compile', function() {
 	return gulp.src([
 		'node_modules/angular/angular.min.js',
 		'node_modules/angular-local-storage/dist/angular-local-storage.min.js',
+		'node_modules/underscore/underscore.js',
 		'src/js/lib/sm2.js',
 		'src/js/main.js',
 		'src/js/services.js'
@@ -30,5 +31,3 @@ gulp.task('watch', function(){
 	gulp.watch('src/sass/**/*.scss', ['sass']);
 	gulp.watch('src/js/**/*.js', ['js:compile']);
 })
-
-
