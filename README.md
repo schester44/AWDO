@@ -1,4 +1,4 @@
-#AWDO by Tewns
+#AWDO
 
 AWDO is a proof of concept angular application that plays random songs from the tewns.com API.
 
