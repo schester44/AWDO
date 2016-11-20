@@ -22,7 +22,7 @@
 				<div ng-hide="songHistory.length" style="width:100%;margin-top:25px;text-align:center">
 					Press play to start your journey.
 				</div>
-				<div class="song" ng-repeat="(key, song) in songHistory">
+				<div class="song" ng-repeat="(key, song) in songHistory track by $index">
 					<div class="art" ng-click="playFromHistory(song)">
 						<img ng-src="{{song.images.small}}" onerror="this.style.display='none'">
 					</div>
@@ -31,7 +31,7 @@
 						{{ song.song_artist}} - {{ song.song_title }}
 						</div>
 					</div>
-					<i class="fa fa-times" ng-click="removeFromHistory(song)"></i>
+						<i ng-class="{'fa-times': song.fromHistory, 'fa-plus': !song.fromHistory}" class="fa history-action" ng-click="addRemoveSong(song, $index)"></i>
 				</div>
 			</div>
 			<div class="fadeout" ng-show="songHistory.length >= 6"></div>
@@ -42,7 +42,7 @@
 			<sound-manager></sound-manager>
 			<i class="fa" ng-class="isPlaying ? 'fa-pause' : 'fa-play'" ng-click="togglePlay()"></i>
 			<i class="fa fa-forward" ng-click="nextSong()"></i>
-			<i class="fa fa-info" ng-click="toggleOverlay()" ng-class="{hidden: songHistory.length <= 0}" ></i>
+			<i class="fa fa-info" ng-click="toggleOverlay()" ng-class="{hidden: !audioLoaded}" ></i>
 	</div>
 </div>
 

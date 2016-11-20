@@ -410,33 +410,36 @@ c.beginDelayedInit),c.enabled=!0,Q()),!0;da();try{k._externalInterfaceTest(!1),S
 p.removeEventListener&&p.removeEventListener("DOMContentLoaded",G,!1);da();return!0};Da=function(){"complete"===p.readyState&&(G(),p.detachEvent("onreadystatechange",Da));return!0};wa=function(){ra=!0;G();t.remove(h,"load",wa)};Fa();t.add(h,"focus",ca);t.add(h,"load",I);t.add(h,"load",wa);p.addEventListener?p.addEventListener("DOMContentLoaded",G,!1):p.attachEvent?p.attachEvent("onreadystatechange",Da):K({type:"NO_DOM2_EVENTS",fatal:!0})}if(!h||!h.document)throw Error("SoundManager requires a browser with window and document objects.");
 var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&module&&"object"===typeof module.exports?(module.exports.SoundManager=w,module.exports.soundManager=N):"function"===typeof define&&define.amd&&define(function(){return{constructor:w,getInstance:function(g){!h.soundManager&&g instanceof Function&&(g=g(w),g instanceof w&&(h.soundManager=g));return h.soundManager}}});h.SoundManager=w;h.soundManager=N})(window);
 (function(){
-	var app = angular.module('tewns', ['LocalStorageModule']);
+	var underscore = angular.module('underscore', []);
+	underscore.factory('_', ['$window', function($window) {
+	  return $window._; // assumes underscore has already been loaded on the page
+	}]);
 
-	app.controller('PlayerCtrl', ['$scope', 'songService', 'localStorageService', function ($scope, songService, localStorageService) {
-		
+	var app = angular.module('tewns', ['LocalStorageModule', 'underscore']);
+
+	app.controller('PlayerCtrl', ['$scope', 'songService', 'localStorageService', '_', function ($scope, songService, localStorageService, _) {
+		$scope.playing 		= {};
+		$scope.songHistory 	= [];
+		$scope.showOverlay 	= false;
+		$scope.isPlaying 	= false;
+		$scope.audioLoaded 	= false;
+		var audio = {};
+
 		soundManager.setup({
 		  onready: function() {}
 		});
-
-		$scope.playing = {};
-		$scope.songHistory = [];
-
-		$scope.showOverlay = false;
-		$scope.isPlaying = false;
-		$scope.audioLoaded = false;
-
-		var audio = {};
 
 		initHistory();
 
 		function initHistory() {
 			var history = JSON.parse(localStorageService.get('history'));
-			console.log(history);
-			$scope.songHistory = history;
-		}
+			var songs = [];
+			_.each(history, function(song, key) {
+				song.fromHistory = true;
+				songs.push(song);
+			});
 
-		function removeFromHistory(song) {
-			console.log(song);
+			$scope.songHistory = songs.reverse();
 		}
 
 		function playSong(){
@@ -445,7 +448,6 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 		    }
 	    	songService.getRandom().then(function(song) {
 				if ($scope.songHistory.indexOf(song) == -1) {
-				console.log(song);
 				    soundManager.onready(function() {
 				        audio.nowPlaying = soundManager.createSound({
 				            id: song.song_id,
@@ -458,10 +460,6 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 				            }
 				        })
 				    });
-					var history = JSON.parse(localStorageService.get('history'));
-					history = (history) ? history : [];
-					history.push(song);
-					localStorageService.set('history', JSON.stringify(history));
 					
 					$scope.playing = song;
 					$scope.songHistory.unshift($scope.playing);
@@ -471,6 +469,55 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 			});
 		}
 
+		$scope.addRemoveSong = function(song, index) {
+			if (song.fromHistory) {
+				removeFromHistory(song, index);
+			} else {
+				addToHistory(song, index);
+			}
+		}
+
+		addToHistory = function(song, index)  {
+			var history = JSON.parse(localStorageService.get('history'));
+			history.push(song);
+			localStorageService.set('history', JSON.stringify(history));
+
+			$scope.songHistory[index].fromHistory = true;
+		}
+
+		removeFromHistory = function(song, index) {
+			var history = JSON.parse(localStorageService.get('history'));
+			var newHistory = _.without(history, _.findWhere(history, {
+			  song_id: song.song_id
+			}));
+
+			localStorageService.set('history', JSON.stringify(newHistory));
+
+			$scope.songHistory.splice(index, 1);
+		}
+
+		$scope.playFromHistory = function(song) {
+			if (audio.nowPlaying){
+	        	audio.nowPlaying.destruct();
+		    }
+
+		    soundManager.onready(function() {
+		        audio.nowPlaying = soundManager.createSound({
+		            id: song.song_id,
+		            url: song.source,
+		            autoLoad: true,
+		            autoPlay: true,
+		            volume: 100,
+		            onfinish: function(){
+		            	// play next song in history array.. if no song left, playSong();
+		            }
+		        })
+		    });
+
+			$scope.playing = song;
+			$scope.isPlaying = true;
+			$scope.audioLoaded = true;
+		}
 
 		$scope.togglePlay = function() {
 			$scope.isPlaying = !$scope.isPlaying;
@@ -497,11 +544,13 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 	
 	app.factory('songService', ['$http', '$q', function($http, $q){
 		return {
-			getSong: function(params) {
-				if (typeof params !== "undefined") {
-					//params are listed, so URL encode them and attach them to the endpoint URL
-				}
+			getSong: function(id) {
+				var d = $q.defer();
+				$http.get('http://tewns.com/api/v1/song?id=' + id).success(function(data) {
+					d.resolve(data);
+				});
 
+				return d.promise;
 			},
 			getRandom: function() {
 				var d = $q.defer();

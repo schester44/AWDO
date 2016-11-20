@@ -22,8 +22,13 @@
 
 		function initHistory() {
 			var history = JSON.parse(localStorageService.get('history'));
-			console.log(history);
-			$scope.songHistory = history.reverse();
+			var songs = [];
+			_.each(history, function(song, key) {
+				song.fromHistory = true;
+				songs.push(song);
+			});
+
+			$scope.songHistory = songs.reverse();
 		}
 
 		function playSong(){
@@ -44,10 +49,6 @@
 				            }
 				        })
 				    });
-					var history = JSON.parse(localStorageService.get('history'));
-					history = (history) ? history : [];
-					history.push(song);
-					localStorageService.set('history', JSON.stringify(history));
 					
 					$scope.playing = song;
 					$scope.songHistory.unshift($scope.playing);
@@ -57,14 +58,31 @@
 			});
 		}
 
-		$scope.removeFromHistory = function(song) {
+		$scope.addRemoveSong = function(song, index) {
+			if (song.fromHistory) {
+				removeFromHistory(song, index);
+			} else {
+				addToHistory(song, index);
+			}
+		}
+
+		addToHistory = function(song, index)  {
+			var history = JSON.parse(localStorageService.get('history'));
+			history.push(song);
+			localStorageService.set('history', JSON.stringify(history));
+
+			$scope.songHistory[index].fromHistory = true;
+		}
+
+		removeFromHistory = function(song, index) {
 			var history = JSON.parse(localStorageService.get('history'));
 			var newHistory = _.without(history, _.findWhere(history, {
 			  song_id: song.song_id
 			}));
 
 			localStorageService.set('history', JSON.stringify(newHistory));
-			$scope.songHistory = newHistory;
+
+			$scope.songHistory.splice(index, 1);
 		}
 
 		$scope.playFromHistory = function(song) {
