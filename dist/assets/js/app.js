@@ -1959,6 +1959,11 @@ c.beginDelayedInit),c.enabled=!0,Q()),!0;da();try{k._externalInterfaceTest(!1),S
 p.removeEventListener&&p.removeEventListener("DOMContentLoaded",G,!1);da();return!0};Da=function(){"complete"===p.readyState&&(G(),p.detachEvent("onreadystatechange",Da));return!0};wa=function(){ra=!0;G();t.remove(h,"load",wa)};Fa();t.add(h,"focus",ca);t.add(h,"load",I);t.add(h,"load",wa);p.addEventListener?p.addEventListener("DOMContentLoaded",G,!1):p.attachEvent?p.attachEvent("onreadystatechange",Da):K({type:"NO_DOM2_EVENTS",fatal:!0})}if(!h||!h.document)throw Error("SoundManager requires a browser with window and document objects.");
 var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&module&&"object"===typeof module.exports?(module.exports.SoundManager=w,module.exports.soundManager=N):"function"===typeof define&&define.amd&&define(function(){return{constructor:w,getInstance:function(g){!h.soundManager&&g instanceof Function&&(g=g(w),g instanceof w&&(h.soundManager=g));return h.soundManager}}});h.SoundManager=w;h.soundManager=N})(window);
 /// ADD FUNCTION TO FLAG SONGS IF THEY'RE NOT WORKING / DEAD -- SOUNDCLOUD
+// BUGS:: 
+// rate limit click... possible to play multiple songs at once if you click next fast enogugh
+// adding song to history isnt working on production
+//  songs take on the album art of the last saved history song 
+// needs some sort of state management  ( a variable for songs in the history and a variable for the songs being displayed)
 
 (function(){
 	var underscore = angular.module('underscore', []);
@@ -1968,7 +1973,9 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 
 	var app = angular.module('tewns', ['LocalStorageModule', 'underscore']);
 
-	app.controller('PlayerCtrl', ['$scope', 'songService', 'localStorageService', '_', function ($scope, songService, localStorageService, _) {
+	app.controller('PlayerCtrl', ['$scope', 'songService', 'localStorageService', '_', 
+
+		function ($scope, songService, localStorageService, _) {
 		$scope.playing 		= {};
 		$scope.songHistory 	= [];
 		$scope.showOverlay 	= false;
@@ -1976,10 +1983,46 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 		$scope.audioLoaded 	= false;
 		var audio = {};
 
+		$scope.searchBox = '';
+
+		var searchOptions = {
+		  threshold: 0.6,
+		  location: 0,
+		  distance: 100,
+		  maxPatternLength: 32,
+		  keys: [
+		    "song_artist",
+		    "song_title",
+		    "song_producer",
+		    "featuring"
+		]
+		};
+		
+		var fuse = new Fuse($scope.songHistory, searchOptions);
+		// overwrite the existing fuse with a new copy of the songHistory
+		$scope.$watch('songHistory', function(newVal, oldVal) {
+			fuse = new Fuse($scope.songHistory, searchOptions);
+		});
+
+		//live search
+	    $scope.$watch('searchBox', function(newVal, oldVal){
+	    	if ($scope.searchBox.trim().length > 2) {
+				var result = fuse.search($scope.searchBox);
+
+				if (result.length > 0) {
+					$scope.songHistory = result;
+				}
+	    	} else {
+	    		initHistory();
+	    	}
+	    });
+
+	    //init soundManager
 		soundManager.setup({
 		  onready: function() {}
 		});
 
+		//insert history from LocalStorage
 		initHistory();
 
 		function initHistory() {
@@ -1992,7 +2035,7 @@ var N=null;h.SM2_DEFER!==g&&SM2_DEFER||(N=new w);"object"===typeof module&&modul
 
 			$scope.songHistory = songs.reverse();
 		}
-
+		//main song playing function
 		function playSong(){
 		    if (audio.nowPlaying){
 		        audio.nowPlaying.destruct();

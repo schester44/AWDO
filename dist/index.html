@@ -16,13 +16,13 @@
 <div class="app">
 	<div class="header"><h1>awdo</h1></div>
 	<div class="container">
-		<input type="text" class="search" placeholder="Search..">
+		<input type="text" class="search" placeholder="Search.." ng-model="searchBox">
 		<scroll class="history-wrapper">
 			<div class="history">
 				<div ng-hide="songHistory.length" style="width:100%;margin-top:25px;text-align:center">
 					Press play to start your journey.
 				</div>
-				<div class="song" ng-repeat="(key, song) in songHistory track by $index">
+				<div class="song" ng-repeat="(key, song) in songHistory">
 					<div class="art" ng-click="playFromHistory(song)">
 						<img ng-src="{{song.images.small}}" onerror="this.style.display='none'">
 					</div>
@@ -46,7 +46,8 @@
 	</div>
 </div>
 
-<script src="assets/js/app.js"></script>
-	
+<script src="../node_modules/fuse.js/src/fuse.min.js"></script>
+<script src="../node_modules/waud.js/dist/waud.min.js"></script>
+<script src="assets/js/app.js"></script>	
 </body>
 </html>
