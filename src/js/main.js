@@ -14,46 +14,50 @@
 	var app = angular.module('tewns', ['LocalStorageModule', 'underscore']);
 
 	app.controller('PlayerCtrl', ['$scope', 'songService', 'localStorageService', '_', 
-
 		function ($scope, songService, localStorageService, _) {
-		$scope.playing 		= {};
-		$scope.songHistory 	= [];
-		$scope.showOverlay 	= false;
-		$scope.isPlaying 	= false;
-		$scope.audioLoaded 	= false;
-		var audio = {};
+			var audio = {};			
+			var state = {
+				songHistory: [],
+				currentList: [],
+				history: (JSON.parse(localStorageService.get('history'))) ? JSON.parse(localStorageService.get('history')) : []
+			}
 
-		$scope.searchBox = '';
+			$scope.currentSong 		= {};
+			$scope.listSongs 		= state.currentList;
+			$scope.listSongsLength   = state.currentList.length;
+			$scope.showOverlay 		= false;
+			$scope.isPlaying 		= false;
+			$scope.audioLoaded 		= false;
+			$scope.searchBox 		= '';
+			$scope.songHistory  	= state.songHistory;
 
-		var searchOptions = {
-		  threshold: 0.6,
-		  location: 0,
-		  distance: 100,
-		  maxPatternLength: 32,
-		  keys: [
-		    "song_artist",
-		    "song_title",
-		    "song_producer",
-		    "featuring"
-		]
-		};
+			//fuzzy search
+			var searchOptions = {
+		  		threshold: 0.6,
+		  		location: 0,
+		  		distance: 100,
+		  		maxPatternLength: 32,
+		  		keys: [
+		    		"song_artist",
+		    		"song_title"
+				]
+			};
 		
-		var fuse = new Fuse($scope.songHistory, searchOptions);
-		// overwrite the existing fuse with a new copy of the songHistory
-		$scope.$watch('songHistory', function(newVal, oldVal) {
-			fuse = new Fuse($scope.songHistory, searchOptions);
-		});
 
-		//live search
+			var fuse = new Fuse($scope.songHistory, searchOptions);
+		$scope.$watch('songHistory', function(current, old) {
+			fuse = new Fuse($scope.songHistory, searchOptions);
+		})
+
 	    $scope.$watch('searchBox', function(newVal, oldVal){
 	    	if ($scope.searchBox.trim().length > 2) {
-				var result = fuse.search($scope.searchBox);
-
+				var result = fuse.search(newVal);
 				if (result.length > 0) {
-					$scope.songHistory = result;
+					$scope.listSongs = result;
 				}
 	    	} else {
-	    		initHistory();
+	    		$scope.listSongs 		= state.currentList;
+	    		$scope.listSongsLength 	= state.currentList.length;
 	    	}
 	    });
 
@@ -66,60 +70,68 @@
 		initHistory();
 
 		function initHistory() {
-			var history = JSON.parse(localStorageService.get('history'));
 			var songs = [];
-			_.each(history, function(song, key) {
+
+			_.each(state.history, function(song, key) {
 				song.fromHistory = true;
-				songs.push(song);
+				songs.unshift(song);
 			});
 
-			$scope.songHistory = songs.reverse();
+			state.songHistory 	= songs;
+			state.currentList   = songs;
+			$scope.songHistory = state.songHistory;
 		}
+
 		//main song playing function
-		function playSong(){
+		function playSong(song){
 		    if (audio.nowPlaying){
 		        audio.nowPlaying.destruct();
 		    }
-	    	songService.getRandom().then(function(song) {
-				if ($scope.songHistory.indexOf(song) == -1) {
-				    soundManager.onready(function() {
-				        audio.nowPlaying = soundManager.createSound({
-				            id: song.song_id,
-				            url: song.source,
-				            autoLoad: true,
-				            autoPlay: true,
-				            volume: 100,
-				            onfinish: function(){
-				            	playSong();
-				            }
-				        })
-				    });
-					
-					$scope.playing = song;
-					$scope.songHistory.unshift($scope.playing);
-					$scope.isPlaying = true;
-					$scope.audioLoaded = true;
-				}
-			});
+
+		    if (typeof song !== "undefined") {
+		    	//play song from history
+		    } else {
+		    	songService.getRandom().then(function(song) {
+					if ($scope.songHistory.indexOf(song) == -1) {
+					    soundManager.onready(function() {
+					        audio.nowPlaying = soundManager.createSound({
+					            id: song.song_id,
+					            url: song.source,
+					            autoLoad: true,
+					            autoPlay: true,
+					            volume: 100,
+					            onfinish: function(){
+					            	playSong();
+					            }
+					        })
+					    });
+						
+						$scope.currentSong 	= song;
+						$scope.listSongs.unshift($scope.currentSong);
+						$scope.listSongsLength = $scope.listSongs.length;
+						$scope.isPlaying 	= true;
+						$scope.audioLoaded 	= true;
+					}
+				});
+		    }
 		}
 
-		addToHistory = function(song, index)  {
-			var history = JSON.parse(localStorageService.get('history'));
-			history.push(song);
-			localStorageService.set('history', JSON.stringify(history));
+		addToHistory = function(song, index)  {			
+			$scope.listSongs[index].fromHistory = true;
+			state.history.push(song);
 
-			$scope.songHistory[index].fromHistory = true;
+			localStorageService.set('history', JSON.stringify(state.history));
 		}
 
 		removeFromHistory = function(song, index) {
-			var history = JSON.parse(localStorageService.get('history'));
-			var newHistory = _.without(history, _.findWhere(history, {
+			var newHistory = _.without(state.history, _.findWhere(state.history, {
 			  song_id: song.song_id
 			}));
 
-			localStorageService.set('history', JSON.stringify(newHistory));
+			state.history = newHistory;
+			$scope.listSongs[index].fromHistory = false;
 
-			$scope.songHistory.splice(index, 1);
+			localStorageService.set('history', JSON.stringify(newHistory));
 		}
 
 		$scope.addRemoveSong = function(song, index) {
@@ -130,36 +142,13 @@
 			}
 		}
 		
-		$scope.playFromHistory = function(song) {
-			if (audio.nowPlaying){
-	        	audio.nowPlaying.destruct();
-		    }
-
-		    soundManager.onready(function() {
-		        audio.nowPlaying = soundManager.createSound({
-		            id: song.song_id,
-		            url: song.source,
-		            autoLoad: true,
-		            autoPlay: true,
-		            volume: 100,
-		            onfinish: function(){
-		            	// play next song in history array.. if no song left, playSong();
-		            }
-		        })
-		    });
-
-			$scope.playing = song;
-			$scope.isPlaying = true;
-			$scope.audioLoaded = true;
-		}
-
 		$scope.togglePlay = function() {
 			$scope.isPlaying = !$scope.isPlaying;
 
 			if (!$scope.audioLoaded) {
 				playSong();
 			} else {
-				soundManager.togglePause($scope.playing.song_id);
+				soundManager.togglePause($scope.currentSong.song_id);
 			}
 		}
 

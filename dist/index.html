@@ -10,19 +10,19 @@
 </head>
 <body ng-controller="PlayerCtrl as player">
 <div class="overlay" ng-class="{hidden: !showOverlay}" ng-click="toggleOverlay()">
-	<img ng-src="{{playing.images.large}}" onerror="this.style.display='none'">
-	{{ playing.song_artist }} - {{playing.song_title}}	
+	<img ng-src="{{currentSong.images.large}}" onerror="this.style.display='none'">
+	{{ currentSong.song_artist }} - {{currentSong.song_title}}	
 </div>
 <div class="app">
 	<div class="header"><h1>awdo</h1></div>
 	<div class="container">
-		<input type="text" class="search" placeholder="Search.." ng-model="searchBox">
+		<input type="text" class="search" placeholder="Search.." ng-model="searchBox" ng-hide="listSongsLength <= 10">
 		<scroll class="history-wrapper">
 			<div class="history">
-				<div ng-hide="songHistory.length" style="width:100%;margin-top:25px;text-align:center">
+				<div class="placeholder" ng-hide="listSongs.length">
 					Press play to start your journey.
 				</div>
-				<div class="song" ng-repeat="(key, song) in songHistory">
+				<div class="song" ng-repeat="(key, song) in listSongs track by $index">
 					<div class="art" ng-click="playFromHistory(song)">
 						<img ng-src="{{song.images.small}}" onerror="this.style.display='none'">
 					</div>
@@ -34,20 +34,15 @@
 						<i ng-class="{'fa-times': song.fromHistory, 'fa-plus': !song.fromHistory}" class="fa history-action" ng-click="addRemoveSong(song, $index)"></i>
 				</div>
 			</div>
-			<div class="fadeout" ng-show="songHistory.length >= 6"></div>
+			<div class="fadeout" ng-show="listSongs.length >= 6"></div>
 		</scroll>
 	</div>
-
 	<div class="player">
-			<sound-manager></sound-manager>
 			<i class="fa" ng-class="isPlaying ? 'fa-pause' : 'fa-play'" ng-click="togglePlay()"></i>
 			<i class="fa fa-forward" ng-click="nextSong()"></i>
 			<i class="fa fa-info" ng-click="toggleOverlay()" ng-class="{hidden: !audioLoaded}" ></i>
 	</div>
 </div>
-
-<script src="../node_modules/fuse.js/src/fuse.min.js"></script>
-<script src="../node_modules/waud.js/dist/waud.min.js"></script>
 <script src="assets/js/app.js"></script>	
 </body>
 </html>

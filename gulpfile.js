@@ -6,6 +6,7 @@ var rename  = require('gulp-rename');
 
 gulp.task('js:compile', function() {
 	return gulp.src([
+		'node_modules/fuse.js/src/fuse.min.js',
 		'node_modules/angular/angular.min.js',
 		'node_modules/angular-local-storage/dist/angular-local-storage.min.js',
 		'node_modules/underscore/underscore.js',
