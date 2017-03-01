@@ -12,7 +12,7 @@ gulp.task('js:compile', function() {
 		'node_modules/underscore/underscore.js',
 		'src/js/lib/sm2.js',
 		'src/js/main.js',
-		'src/js/services.js'
+		'src/js/components/**/*.js'
 		])
 		.pipe(concat('app.js'))
 		.pipe(gulp.dest('dist/assets/js/'));

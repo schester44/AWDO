@@ -1,9 +1,11 @@
 /// ADD FUNCTION TO FLAG SONGS IF THEY'RE NOT WORKING / DEAD -- SOUNDCLOUD
+// 
+// META tags for album and SEO
+// 
 // BUGS:: 
 // rate limit click... possible to play multiple songs at once if you click next fast enogugh
-// adding song to history isnt working on production
 //  songs take on the album art of the last saved history song 
-// needs some sort of state management  ( a variable for songs in the history and a variable for the songs being displayed)
+//  
 
 (function(){
 	var underscore = angular.module('underscore', []);
@@ -92,10 +94,11 @@
 		    	//play song from history
 		    } else {
 		    	songService.getRandom().then(function(song) {
+		    		var song = song.data[0];
 					if ($scope.songHistory.indexOf(song) == -1) {
 					    soundManager.onready(function() {
 					        audio.nowPlaying = soundManager.createSound({
-					            id: song.song_id,
+					            id: song.id,
 					            url: song.source,
 					            autoLoad: true,
 					            autoPlay: true,

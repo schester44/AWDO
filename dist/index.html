@@ -10,8 +10,8 @@
 </head>
 <body ng-controller="PlayerCtrl as player">
 <div class="overlay" ng-class="{hidden: !showOverlay}" ng-click="toggleOverlay()">
-	<img ng-src="{{currentSong.images.large}}" onerror="this.style.display='none'">
-	{{ currentSong.song_artist }} - {{currentSong.song_title}}	
+	<img ng-src="{{currentSong.artwork.large}}">
+	{{ currentSong.artist }} - {{currentSong.title}}	
 </div>
 <div class="app">
 	<div class="header"><h1>awdo</h1></div>
@@ -24,11 +24,11 @@
 				</div>
 				<div class="song" ng-repeat="(key, song) in listSongs track by $index">
 					<div class="art" ng-click="playFromHistory(song)">
-						<img ng-src="{{song.images.small}}" onerror="this.style.display='none'">
+						<img ng-src="{{song.artwork.small}}">
 					</div>
 					<div class="info-wrap">
 						<div class="info" ng-click="playFromHistory(song)">
-						{{ song.song_artist}} - {{ song.song_title }}
+						{{ song.artist }} - {{ song.title }}
 						</div>
 					</div>
 						<i ng-class="{'fa-times': song.fromHistory, 'fa-plus': !song.fromHistory}" class="fa history-action" ng-click="addRemoveSong(song, $index)"></i>
