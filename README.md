@@ -1,3 +1,5 @@
+# This code is old, you probably shouldn't use it.
+
 #AWDO
 
 AWDO is a proof of concept angular application that plays random songs from the tewns.com API.
