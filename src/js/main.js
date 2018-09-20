@@ -1,12 +1,3 @@
-/// ADD FUNCTION TO FLAG SONGS IF THEY'RE NOT WORKING / DEAD -- SOUNDCLOUD
-// 
-// META tags for album and SEO
-// 
-// BUGS:: 
-// rate limit click... possible to play multiple songs at once if you click next fast enogugh
-//  songs take on the album art of the last saved history song 
-//  
-
 (function(){
 	var underscore = angular.module('underscore', []);
 	underscore.factory('_', ['$window', function($window) {
